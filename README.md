@@ -3,6 +3,8 @@ An open catalog of scholarships, grants, and educational opportunities.
 
 [Задачи backend для MVP](docs/backend-mvp.md)
 
+[Задачи frontend для MVP](docs/frontend-mvp.md)
+
 ## Локальный запуск backend
 
 Из корня репозитория выполните в PowerShell при первом запуске:
@@ -14,6 +16,26 @@ Invoke-RestMethod http://localhost:8080/health
 ```
 
 Compose поднимает PostgreSQL 16, применяет SQL-миграции через Goose и запускает Gin API. Ответ `{"status":"ok"}` означает, что API подключился к базе через sqlx. Если база недоступна после запуска, проверка вернёт HTTP 503. Для другого порта измените `API_PORT` в `.env` и в адресе запроса.
+
+## Локальный запуск frontend
+
+Запустите backend по инструкции выше. В отдельном терминале из корня репозитория выполните команды для React и Vite (Node.js 22.12+ или ветка 20.x начиная с 20.19).
+
+```powershell
+cd frontend
+npm ci
+npm run dev
+```
+
+Откройте адрес из вывода Vite (обычно `http://localhost:5173`). При загрузке страницы браузер запрашивает `GET /health` на том же адресе. Dev-прокси Vite передаёт запрос в backend на порту `API_PORT` из корневого `.env` (по умолчанию 8080). При ответе `{"status":"ok"}` внизу страницы появится «Соединение с API установлено». После изменения порта перезапустите Vite.
+
+Для production-сборки выполните в каталоге `frontend`:
+
+```powershell
+npm run build
+```
+
+Готовые статические файлы находятся в `frontend/dist/`. При публикации настройте веб-сервер так, чтобы он передавал запросы к `/health` в backend.
 
 ## База данных
 
