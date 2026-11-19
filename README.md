@@ -3,6 +3,8 @@ An open catalog of scholarships, grants, and educational opportunities.
 
 [Задачи backend для MVP](docs/backend-mvp.md)
 
+[Задачи frontend для MVP](docs/frontend-mvp.md)
+
 ## Локальный запуск backend
 
 Из корня репозитория выполните в PowerShell при первом запуске:
