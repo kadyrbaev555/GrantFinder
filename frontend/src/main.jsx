@@ -2,6 +2,8 @@ import { createRoot } from 'react-dom/client'
 import { useEffect, useState } from 'react'
 import './style.css'
 import graduationPhoto from './assets/graduation.jpg'
+import Deadline from './Deadline.jsx'
+import ProgramPage from './ProgramPage.jsx'
 
 function ConnectionStatus() {
   const [status, setStatus] = useState('pending')
@@ -44,21 +46,15 @@ function ConnectionStatus() {
   )
 }
 
-const formatDeadline = new Intl.DateTimeFormat('ru-RU', {
-  day: 'numeric', month: 'long', year: 'numeric', timeZone: 'UTC',
-})
-
 function ProgramCard({ program }) {
   return (
     <article className="card">
       <div className="country"><i className="pin" aria-hidden="true" />{program.country}</div>
-      <h3>{program.title}</h3>
+      <h3><a className="program-link" href={`/?program=${program.id}`}>{program.title}</a></h3>
       <p className="organizer">{program.organizer}</p>
       <dl>
         <div><dt>Уровень образования</dt><dd>{program.education_level}</dd></div>
-        <div><dt>Приём заявок</dt><dd>{program.deadline
-          ? <time dateTime={program.deadline}>{formatDeadline.format(new Date(program.deadline))}</time>
-          : 'Срок не указан'}</dd></div>
+        <div><dt>Приём заявок</dt><dd><Deadline value={program.deadline} /></dd></div>
       </dl>
     </article>
   )
@@ -149,13 +145,15 @@ function Catalog() {
 }
 
 function App() {
+  const programId = new URLSearchParams(window.location.search).get('program')
   return (
     <>
       <header>
         <a className="brand" href="./" lang="en"><span aria-hidden="true" className="mark">↗</span>GrantFinder</a>
-        <a className="nav-link" href="#catalog">Каталог программ <span aria-hidden="true">↓</span></a>
+        <a className="nav-link" href="/#catalog">Каталог программ <span aria-hidden="true">{programId === null ? '↓' : '↗'}</span></a>
       </header>
       <main>
+        {programId !== null ? <ProgramPage id={programId} /> : <>
         <section className="hero" aria-labelledby="hero-heading">
           <div className="intro">
             <h1 id="hero-heading">Гранты и<br /><em>стипендии</em></h1>
@@ -169,6 +167,7 @@ function App() {
           </div>
         </section>
         <Catalog />
+        </>}
       </main>
       <ConnectionStatus />
     </>

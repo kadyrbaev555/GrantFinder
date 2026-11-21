@@ -79,6 +79,25 @@ dl { align-self: stretch; margin-top: auto; border-top: 1px solid var(--line); p
 dt { color: var(--muted); font-size: .75rem; margin-bottom: .2rem; }
 dd { font-size: .9rem; line-height: 1.45; }
 footer { gap: 1rem; flex-wrap: wrap; border-top: 1px solid var(--line); padding: 1.5rem 0; color: var(--muted); font-size: .85rem; }
+.card { position: relative; }
+.program-link::after { content: ""; position: absolute; inset: 0; border-radius: .8rem; }
+.card:has(.program-link:hover), .card:focus-within { border-color: #79927a; }
+.program-link:hover { text-decoration: underline; text-underline-offset: .15em; }
+.program-page { padding: clamp(1.5rem, 4vw, 3rem) 0; overflow-wrap: anywhere; }
+.program-heading { background: #e9efdf; border-radius: 1rem; padding: clamp(1.4rem, 4vw, 3.5rem); }
+.program-heading .country { width: fit-content; background: #fffefa; }
+.program-heading h1 { max-width: 18ch; font-size: clamp(2.6rem, 5.4vw, 5rem); line-height: 1.03; margin: 1rem 0; }
+.program-heading p { color: var(--muted); }
+.program-body { display: grid; grid-template-columns: minmax(0, 1.7fr) minmax(0, 1fr); align-items: start; gap: clamp(1.5rem, 5vw, 5rem); padding: 2rem 0; }
+.program-copy { display: grid; gap: 1.75rem; }
+.program-copy h2 { font-size: clamp(1.65rem, 3vw, 2.25rem); margin-bottom: .6rem; }
+.program-copy p { white-space: pre-line; line-height: 1.65; }
+.program-body aside { padding: 1.4rem; border: 1px solid var(--line); border-radius: .8rem; background: #fffefa; }
+.program-body dl { border: 0; padding: 0; gap: 1rem; }
+.program-body .browse { margin-top: 1.5rem; }
+.program-status { padding: 3rem 0; }
+.program-status a { display: inline-block; margin-top: 1rem; text-decoration: underline; }
+@media (max-width: 42rem) { .program-body { grid-template-columns: minmax(0, 1fr); } }
 footer [role="status"]::before { content: ""; display: inline-block; width: .55rem; height: .55rem; margin-right: .55rem; border-radius: 50%; background: #837643; }
 footer [data-state="ok"]::before { background: #397253; }
 footer [data-state="error"]::before { background: #a33c29; }
