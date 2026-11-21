@@ -23,11 +23,67 @@ Compose поднимает PostgreSQL 16, применяет SQL-миграци�
 
 Все параметры поиска необязательны. `q` ищет подстроку в названии без учёта регистра. `country` и `funding_type` принимают точное значение из карточки, а `education_level` — один уровень, например `Магистратура`. Если у программы несколько уровней, достаточно совпадения с одним из них. Пустые параметры пропускаются. При сочетании параметров действуют все условия одновременно.
 
-Например, `GET /api/v1/scholarships?q=daad&country=Германия&education_level=Магистратура` возвращает карточку DAAD Scholarships.
+Для запроса из React соберите строку параметров с помощью `URLSearchParams`. Пример поиска с двумя фильтрами:
+
+```js
+const params = new URLSearchParams({
+  q: 'daad',
+  country: 'Германия',
+  education_level: 'Магистратура',
+})
+const response = await fetch(`/api/v1/scholarships?${params}`)
+if (!response.ok) throw new Error(`HTTP ${response.status}`)
+const cards = await response.json()
+```
+
+Ответ на новой базе:
+
+```json
+[
+  {
+    "id": 3,
+    "title": "DAAD Scholarships",
+    "organizer": "Deutscher Akademischer Austauschdienst (DAAD)",
+    "country": "Германия",
+    "education_level": "Магистратура, Докторантура, Исследования",
+    "funding_type": "Зависит от программы",
+    "deadline": null
+  }
+]
+```
+
+Если в том же запросе выбрать страну `Япония`, API вернёт HTTP 200 и `[]`.
 
 ### Детали программы
 
 `GET /api/v1/scholarships/:id` принимает ID из карточки каталога. При успехе API возвращает HTTP 200 и JSON-объект со всеми полями карточки, а также `description`, `requirements`, `funding_details` и `official_url`. Если ID указан в неверном формате или выходит за диапазон от 1 до 9223372036854775807, API возвращает HTTP 400. Если программы с таким ID нет, ответ — HTTP 404.
+
+Для перехода из каталога подставьте `card.id` в путь запроса. Например, на новой базе `GET /api/v1/scholarships/3` возвращает:
+
+```json
+{
+  "id": 3,
+  "title": "DAAD Scholarships",
+  "organizer": "Deutscher Akademischer Austauschdienst (DAAD)",
+  "country": "Германия",
+  "education_level": "Магистратура, Докторантура, Исследования",
+  "funding_type": "Зависит от программы",
+  "deadline": null,
+  "description": "Стипендии и исследовательские гранты для обучения и научной работы в университетах Германии. Сроки подачи зависят от конкретной программы и трека.",
+  "requirements": "Соответствующий диплом о высшем образовании\nЗнание английского или немецкого языка\nМотивационное письмо и пакет документов выбранной программы",
+  "funding_details": "Ежемесячная стипендия, медицинская страховка и дополнительные выплаты в зависимости от конкретной программы DAAD.",
+  "official_url": "https://www.daad-kyrgyzstan.org/ru/poisk-finansirovaniya/baza-dannyh-stipendialnyh-programm/"
+}
+```
+
+Кнопка «Официальный сайт» на странице программы открывает `official_url` из этого ответа. Значение `deadline: null` можно показать как «Срок не указан».
+
+| Запрос | HTTP | Тело ошибки |
+| --- | --- | --- |
+| Детали с некорректным ID, например `/api/v1/scholarships/abc` | 400 | `{"error":"invalid scholarship ID"}` |
+| Детали отсутствующей программы | 404 | `{"error":"scholarship not found"}` |
+| Ошибка чтения каталога | 500 | `{"error":"could not load scholarships"}` |
+| Ошибка чтения деталей | 500 | `{"error":"could not load scholarship"}` |
 
 ## Локальный запуск frontend
 
@@ -47,7 +103,7 @@ npm run dev
 npm run build
 ```
 
-Готовые статические файлы находятся в `frontend/dist/`. При публикации настройте веб-сервер так, чтобы он передавал запросы к `/health` в backend.
+Готовые статические файлы находятся в `frontend/dist/`. В режиме разработки Vite проксирует `/health` и `/api` в backend. При публикации настройте веб-сервер так, чтобы запросы к `/health` и `/api/*` также передавались в backend с сохранением пути и параметров.
 
 ## База данных
 
