@@ -64,24 +64,71 @@ function ProgramCard({ program }) {
   )
 }
 
+const emptyFilters = { q: '', country: '', education_level: '', funding_type: '' }
+const filterFields = [
+  { name: 'country', label: 'Страна', placeholder: 'Все страны' },
+  { name: 'education_level', label: 'Уровень образования', placeholder: 'Все уровни' },
+  { name: 'funding_type', label: 'Финансирование', placeholder: 'Все типы' },
+]
+
+function CatalogFilters({ filters, options, onChange, onReset }) {
+  return (
+    <div className="catalog-filters" role="search" aria-label="Поиск программ">
+      <label>Название программы
+        <input type="search" value={filters.q} placeholder="Например, DAAD"
+          onChange={event => onChange('q', event.target.value)} />
+      </label>
+      {filterFields.map(({ name, label, placeholder }) => (
+        <div className="select-field" key={name}>
+          <label htmlFor={`filter-${name}`}>{label}</label>
+          <select id={`filter-${name}`} value={filters[name]} onChange={event => onChange(name, event.target.value)}>
+            <option value="">{placeholder}</option>
+            {options[name].map(value => <option key={value}>{value}</option>)}
+          </select>
+        </div>
+      ))}
+      <button type="button" onClick={onReset} disabled={!Object.values(filters).some(Boolean)}>Сбросить</button>
+    </div>
+  )
+}
+
 function Catalog() {
   const [programs, setPrograms] = useState(null)
   const [failed, setFailed] = useState(false)
+  const [filters, setFilters] = useState(emptyFilters)
+  const [options, setOptions] = useState(null)
+  const params = new URLSearchParams()
+  for (const [name, value] of Object.entries(filters)) {
+    if (value.trim()) params.set(name, value.trim())
+  }
+  const query = params.toString()
 
   useEffect(() => {
     const controller = new AbortController()
+    setFailed(false)
+    setPrograms(null)
     async function load() {
       try {
-        const response = await fetch('/api/v1/scholarships', { signal: controller.signal })
+        const response = await fetch('/api/v1/scholarships' + (query ? '?' + query : ''), { signal: controller.signal })
         if (!response.ok) throw new Error('Catalog request failed')
-        setPrograms(await response.json())
+        const rows = await response.json()
+        if (controller.signal.aborted) return
+        if (!query) {
+          const choices = {}
+          for (const { name } of filterFields) {
+            const values = rows.flatMap(row => name === 'education_level' ? row[name].split(', ') : [row[name]])
+            choices[name] = [...new Set(values)].sort((a, b) => a.localeCompare(b, 'ru'))
+          }
+          setOptions(choices)
+        }
+        setPrograms(rows)
       } catch {
         if (!controller.signal.aborted) setFailed(true)
       }
     }
     load()
     return () => controller.abort()
-  }, [])
+  }, [query])
 
   return (
     <section id="catalog" aria-labelledby="catalog-heading">
@@ -89,9 +136,14 @@ function Catalog() {
         <h2 id="catalog-heading">Каталог программ</h2>
         {programs && <span className="count" aria-label={`Количество программ: ${programs.length}`}>{programs.length}</span>}
       </div>
+      {options && <CatalogFilters filters={filters} options={options}
+        onChange={(name, value) => setFilters(current => ({ ...current, [name]: value }))}
+        onReset={() => setFilters(emptyFilters)} />}
       {programs?.length > 0 ? (
         <div className="cards">{programs.map(program => <ProgramCard key={program.id} program={program} />)}</div>
-      ) : <p role="status">{failed ? 'Не удалось загрузить каталог.' : programs ? 'В каталоге пока нет программ.' : 'Загружаем программы…'}</p>}
+      ) : <p role="status">{failed ? 'Не удалось загрузить каталог.' : programs && query
+        ? 'Программы не найдены. Измените условия или нажмите «Сбросить».'
+        : programs ? 'В каталоге пока нет программ.' : 'Загружаем программы…'}</p>}
     </section>
   )
 }
