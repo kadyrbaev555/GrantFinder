@@ -41,6 +41,33 @@ h1 em { color: #55795d; font-weight: normal; }
 .section-title { gap: .85rem; margin-bottom: 1.35rem; }
 h2 { font-size: clamp(2rem, 3.7vw, 3.25rem); letter-spacing: -.055em; line-height: 1.1; }
 .count { background: #e6ecd9; border-radius: 2rem; padding: .2rem .65rem; font-size: .85rem; font-weight: 650; }
+.catalog-filters {
+  display: grid;
+  grid-template-columns: minmax(0, 1.35fr) repeat(3, minmax(0, 1fr)) auto;
+  gap: .85rem;
+  align-items: end;
+  padding: 1rem;
+  margin-bottom: 1.2rem;
+  background: #eef1e8;
+  border: 1px solid var(--line);
+  border-radius: .8rem;
+}
+.catalog-filters label, .select-field { display: grid; gap: .4rem; min-width: 0; font-size: .8rem; font-weight: 600; }
+.catalog-filters :is(input, select) {
+  width: 100%;
+  min-width: 0;
+  height: 2.75rem;
+  padding: 0 .65rem;
+  border: 1px solid #aebcac;
+  border-radius: .45rem;
+  background: #fffefa;
+  color: var(--green);
+  font-family: inherit;
+  font-size: 1rem;
+}
+.catalog-filters :is(input, select):focus-visible { outline: 2px solid var(--green); outline-offset: 2px; }
+.catalog-filters button { min-height: 2.75rem; font-size: .85rem; font-weight: 600; }
+.catalog-filters button:disabled { opacity: .55; cursor: default; }
 .cards { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 1rem; }
 .card { display: flex; flex-direction: column; align-items: flex-start; padding: clamp(1.15rem, 1.8vw, 1.65rem); border: 1px solid var(--line); border-radius: .8rem; background: #fffefa; overflow-wrap: anywhere; }
 .country { gap: .45rem; border-radius: 1rem; padding: .3rem .65rem; color: #36533f; background: #eaf0e4; font-size: .76rem; font-weight: 650; }
@@ -57,6 +84,8 @@ footer [data-state="ok"]::before { background: #397253; }
 footer [data-state="error"]::before { background: #a33c29; }
 button { cursor: pointer; background: transparent; color: inherit; font: inherit; border: 1px solid currentColor; border-radius: .3rem; padding: .35rem .65rem; }
 @media (max-width: 58rem) { .cards { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+@media (max-width: 64rem) { .catalog-filters { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+@media (max-width: 36rem) { .catalog-filters { grid-template-columns: minmax(0, 1fr); } }
 @media (max-width: 42rem) {
   header { padding: 1rem 0; }
   .hero { grid-template-columns: 1fr; gap: 1.6rem; }
