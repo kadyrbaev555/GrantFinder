@@ -1,12 +1,18 @@
 package main
 
 import (
+	"database/sql"
+	"errors"
 	"net/http"
+	"strconv"
 	"strings"
 
 	"github.com/gin-gonic/gin"
 	"github.com/jmoiron/sqlx"
 )
+
+const cardColumns = `id, title, organizer, country, education_level, funding_type,
+	to_char(deadline, 'YYYY-MM-DD') AS deadline`
 
 type scholarshipCard struct {
 	ID             int64   `json:"id"`
@@ -21,8 +27,7 @@ type scholarshipCard struct {
 func listScholarships(db *sqlx.DB) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		const query = `
-			SELECT id, title, organizer, country, education_level, funding_type,
-			       to_char(deadline, 'YYYY-MM-DD') AS deadline
+			SELECT ` + cardColumns + `
 			FROM scholarships
 			WHERE ($1::text = '' OR strpos(lower(title COLLATE "und-x-icu"), lower($1 COLLATE "und-x-icu")) > 0)
 			  AND ($2::text = '' OR country = $2)
@@ -42,5 +47,38 @@ func listScholarships(db *sqlx.DB) gin.HandlerFunc {
 			return
 		}
 		c.JSON(http.StatusOK, cards)
+	}
+}
+
+type scholarshipDetails struct {
+	scholarshipCard
+	Description    string `json:"description"`
+	Requirements   string `json:"requirements"`
+	FundingDetails string `db:"funding_details" json:"funding_details"`
+	OfficialURL    string `db:"official_url" json:"official_url"`
+}
+
+func getScholarship(db *sqlx.DB) gin.HandlerFunc {
+	return func(c *gin.Context) {
+		id, err := strconv.ParseUint(c.Param("id"), 10, 63)
+		if err != nil || id == 0 {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "invalid scholarship ID"})
+			return
+		}
+
+		const query = `SELECT ` + cardColumns + `, description, requirements, funding_details, official_url
+			FROM scholarships WHERE id = $1`
+		var details scholarshipDetails
+		err = db.GetContext(c.Request.Context(), &details, query, id)
+		if errors.Is(err, sql.ErrNoRows) {
+			c.JSON(http.StatusNotFound, gin.H{"error": "scholarship not found"})
+			return
+		}
+		if err != nil {
+			c.Error(err)
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "could not load scholarship"})
+			return
+		}
+		c.JSON(http.StatusOK, details)
 	}
 }

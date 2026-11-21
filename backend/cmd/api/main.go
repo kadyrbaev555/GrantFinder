@@ -26,6 +26,7 @@ func run() error {
 
 	router := gin.Default()
 	router.GET("/api/v1/scholarships", listScholarships(db))
+	router.GET("/api/v1/scholarships/:id", getScholarship(db))
 	router.GET("/health", func(c *gin.Context) {
 		ctx, cancel := context.WithTimeout(c.Request.Context(), 2*time.Second)
 		defer cancel()
