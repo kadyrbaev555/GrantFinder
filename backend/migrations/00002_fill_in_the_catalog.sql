@@ -1,5 +1,6 @@
 -- +goose Up
--- Catalog from PR #19, checked on 2026-11-21. A NULL deadline denotes a
+-- Snapshot of the nine programs in docs/scholarships.json, checked on 2026-11-21.
+-- A NULL deadline denotes a
 -- track-specific date or a call without a confirmed deadline.
 INSERT INTO scholarships (
     title, organizer, country, education_level, funding_type, deadline,
