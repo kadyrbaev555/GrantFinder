@@ -4,6 +4,7 @@ import './style.css'
 import graduationPhoto from './assets/graduation.jpg'
 import Deadline from './Deadline.jsx'
 import ProgramPage from './ProgramPage.jsx'
+import RequestNotice from './RequestNotice.jsx'
 
 function ConnectionStatus() {
   const [status, setStatus] = useState('pending')
@@ -89,6 +90,7 @@ function CatalogFilters({ filters, options, onChange, onReset }) {
 }
 
 function Catalog() {
+  const [attempt, setAttempt] = useState(0)
   const [programs, setPrograms] = useState(null)
   const [failed, setFailed] = useState(false)
   const [filters, setFilters] = useState(emptyFilters)
@@ -124,7 +126,24 @@ function Catalog() {
     }
     load()
     return () => controller.abort()
-  }, [query])
+  }, [query, attempt])
+
+  let results
+  if (failed) {
+    results = <RequestNotice message="Не удалось загрузить каталог.">
+      <button onClick={() => setAttempt(n => n + 1)}>Повторить запрос</button>
+    </RequestNotice>
+  } else if (!programs) {
+    results = <RequestNotice loading message="Загружаем программы…" />
+  } else if (programs.length) {
+    results = <div className="cards">{programs.map(program => <ProgramCard key={program.id} program={program} />)}</div>
+  } else if (query) {
+    results = <RequestNotice message="По выбранным условиям программы не найдены.">
+      <button onClick={() => setFilters(emptyFilters)}>Сбросить условия поиска</button>
+    </RequestNotice>
+  } else {
+    results = <RequestNotice message="В каталоге пока нет программ." />
+  }
 
   return (
     <section id="catalog" aria-labelledby="catalog-heading">
@@ -135,11 +154,7 @@ function Catalog() {
       {options && <CatalogFilters filters={filters} options={options}
         onChange={(name, value) => setFilters(current => ({ ...current, [name]: value }))}
         onReset={() => setFilters(emptyFilters)} />}
-      {programs?.length > 0 ? (
-        <div className="cards">{programs.map(program => <ProgramCard key={program.id} program={program} />)}</div>
-      ) : <p role="status">{failed ? 'Не удалось загрузить каталог.' : programs && query
-        ? 'Программы не найдены. Измените условия или нажмите «Сбросить».'
-        : programs ? 'В каталоге пока нет программ.' : 'Загружаем программы…'}</p>}
+      {results}
     </section>
   )
 }
