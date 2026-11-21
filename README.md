@@ -1,10 +1,6 @@
 # GrantFinder
 An open catalog of scholarships, grants, and educational opportunities.
 
-[Задачи backend для MVP](docs/backend-mvp.md)
-
-[Задачи frontend для MVP](docs/frontend-mvp.md)
-
 ## Запуск через Make
 
 Выполняйте команды из корня проекта. Для бэкенда нужен работающий Docker Engine с Compose, для фронтенда — Node.js и npm.
