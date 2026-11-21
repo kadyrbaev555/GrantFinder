@@ -1,15 +1,19 @@
 import { useEffect, useState } from 'react'
 import Deadline from './Deadline.jsx'
+import RequestNotice from './RequestNotice.jsx'
 
 export default function ProgramPage({ id }) {
   const [program, setProgram] = useState(null)
-  const [message, setMessage] = useState('Загружаем программу…')
+  const [state, setState] = useState('loading')
+  const [attempt, setAttempt] = useState(0)
 
   useEffect(() => {
     const controller = new AbortController()
+    setState('loading')
+    setProgram(null)
     async function load() {
       if (!id) {
-        setMessage('Программа не найдена.')
+        setState('missing')
         return
       }
       try {
@@ -17,7 +21,7 @@ export default function ProgramPage({ id }) {
           signal: controller.signal,
         })
         if (response.status === 404 || response.status === 400) {
-          setMessage('Программа не найдена.')
+          if (!controller.signal.aborted) setState('missing')
           return
         }
         if (!response.ok) throw new Error('Program request failed')
@@ -27,14 +31,24 @@ export default function ProgramPage({ id }) {
           document.title = details.title + ' — GrantFinder'
         }
       } catch {
-        if (!controller.signal.aborted) setMessage('Не удалось загрузить программу.')
+        if (!controller.signal.aborted) setState('error')
       }
     }
     load()
     return () => controller.abort()
-  }, [id])
+  }, [id, attempt])
 
-  if (!program) return <div className="program-status"><p role="status">{message}</p><a href="/#catalog">← В каталог</a></div>
+  if (!program) {
+    const messages = {
+      loading: 'Загружаем программу…',
+      missing: 'Программа не найдена.',
+      error: 'Не удалось загрузить программу.',
+    }
+    return <RequestNotice message={messages[state]} loading={state === 'loading'}>
+      {state === 'error' && <button onClick={() => setAttempt(n => n + 1)}>Повторить запрос</button>}
+      <a href="/#catalog">← В каталог</a>
+    </RequestNotice>
+  }
 
   return (
     <article className="program-page">
