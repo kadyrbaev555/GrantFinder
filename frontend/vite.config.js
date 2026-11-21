@@ -11,6 +11,7 @@ export default defineConfig(({ mode }) => {
     server: {
       proxy: {
         '/health': `http://127.0.0.1:${API_PORT}`,
+        '/api': `http://127.0.0.1:${API_PORT}`,
       },
     },
   }
